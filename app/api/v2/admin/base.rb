@@ -23,6 +23,7 @@ module API::V2
       end
 
       mount Admin::Users
+      mount Admin::Activities
     end
   end
 end
