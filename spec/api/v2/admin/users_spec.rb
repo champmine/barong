@@ -51,6 +51,8 @@ describe API::V2::Admin::Users do
         expect(validate_fields(User.third)).to eq users.third
         expect(validate_fields(User.last)).to eq users.last
 
+        expect(users.first.keys).to_not include('profile')
+
         expect(response.headers.fetch('Total')).to eq '4'
         expect(response.headers.fetch('Page')).to eq '1'
         expect(response.headers.fetch('Per-Page')).to eq '100'
@@ -67,9 +69,7 @@ describe API::V2::Admin::Users do
         users = JSON.parse(response.body)
         expect(User.count).to eq users.count
 
-        expect(users.first['labels']).to eq []
-        expect(users.first['activities']).to eq []
-        expect(users.first['profile']).to eq nil
+        expect(users.first.keys).to include('profile')
 
         expect(response.headers.fetch('Total')).to eq '4'
         expect(response.headers.fetch('Page')).to eq '1'

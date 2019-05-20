@@ -36,7 +36,7 @@ module API
                      desc: 'Number of users per page (defaults to 100, maximum is 100).'
           end
           get do
-            entity = params[:extended] ? API::V2::Entities::UserWithFullInfo : API::V2::Entities::User
+            entity = params[:extended] ? API::V2::Entities::UserWithProfile : API::V2::Entities::User
             User.all.tap { |q| present paginate(q), with: entity }
           end
 
@@ -56,7 +56,7 @@ module API
             users = search(params[:field], params[:value])
             error!({ errors: ['admin.user.no_matches'] }, 404) if users.empty?
 
-            entity = params[:extended] ? API::V2::Entities::UserWithFullInfo : API::V2::Entities::User
+            entity = params[:extended] ? API::V2::Entities::UserWithProfile : API::V2::Entities::User
             users.all.tap { |q| present paginate(q), with: entity }
           end
 
