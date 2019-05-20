@@ -562,6 +562,15 @@ describe API::V2::Admin::Users do
         get '/api/v2/admin/users/documents/pending', headers: auth_header
 
         users = JSON.parse(response.body)
+        expect(users.first.keys).to_not include('profile')
+        expect(users.count).to eq private_document_pending_count
+      end
+
+      it 'returns users users with extended info' do
+        get '/api/v2/admin/users/documents/pending', headers: auth_header, params: {extended: true}
+
+        users = JSON.parse(response.body)
+        expect(users.first.keys).to include('profile')
         expect(users.count).to eq private_document_pending_count
       end
 
