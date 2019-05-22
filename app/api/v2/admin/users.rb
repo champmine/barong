@@ -20,6 +20,22 @@ module API
             { code: 401, message: 'Invalid bearer token' }
           ]
           params do
+            optional :uid,
+                     type: String
+            optional :email,
+                     type: String
+            optional :role,
+                     type: String
+            optional :first_name,
+                     type: String
+            optional :last_name,
+                     type: String
+            optional :country,
+                     type: String
+            optional :level,
+                     type: Integer
+            optional :state,
+                     type: String
             optional :page,
                      type: { value: Integer, message: 'admin.user.non_integer_page' },
                      values: { value: -> (p){ p.try(:positive?) }, message: 'admin.user.non_positive_page'},
@@ -32,7 +48,8 @@ module API
                      desc: 'Number of users per page (defaults to 100, maximum is 100).'
           end
           get do
-            User.all.tap { |q| present paginate(q), with: API::V2::Entities::User }
+            users = API::V2::Queries::UserFilter.new(User.all).call(params)
+            users.tap { |q| present paginate(q), with: API::V2::Entities::User }
           end
 
           desc 'Returns array of users as paginated collection',
