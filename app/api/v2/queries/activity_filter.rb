@@ -14,14 +14,14 @@ module API::V2::Queries
       scoped = filter_by_action(scoped, params[:action])
       scoped = filter_by_uid(scoped, params[:uid])
       scoped = filter_by_email(scoped, params[:email])
-      scoped
+      scoped.order('activities.created_at DESC')
     end
 
     # adds where(activities.created_at > from and activities.created_at < to) to query
     private
     def filter_by_date(scoped, from = nil, to = nil)
-      updated_scope = from ? scoped.where('activities.created_at > ?', from) : scoped
-      to ? updated_scope.where('activities.created_at < ?', to) : updated_scope
+      updated_scope = from ? scoped.where('activities.created_at >= ?', from) : scoped
+      to ? updated_scope.where('activities.created_at <= ?', to) : updated_scope
     end
 
     # adds where(activities.topic = topic) to query
