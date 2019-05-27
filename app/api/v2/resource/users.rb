@@ -108,12 +108,12 @@ module API::V2
 
           unless current_user.update(password: params[:new_password])
             error_note = { reason: current_user.errors.full_messages.to_sentence }.to_json
-            activity_record(user: current_user.id, action: 'password change',
+            activity_record(user_uid: current_user.uid, action: 'password change',
                             result: 'failed', topic: 'password', data: error_note)
             code_error!(current_user.errors.details, 422)
           end
 
-          activity_record(user: current_user.id, action: 'password change', result: 'succeed', topic: 'password')
+          activity_record(user_uid: current_user.uid, action: 'password change', result: 'succeed', topic: 'password')
 
           params[:lang].nil? ? 'EN' : params[:lang].upcase!
           EventAPI.notify('system.user.password.change',

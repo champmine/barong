@@ -154,7 +154,7 @@ module API::V2
 
             token = codec.encode(sub: 'reset', email: params[:email], uid: current_user.uid)
 
-            activity_record(user: current_user.id, action: 'request password reset', result: 'succeed', topic: 'password')
+            activity_record(user_uid: current_user.uid, action: 'request password reset', result: 'succeed', topic: 'password')
 
             EventAPI.notify('system.user.password.reset.token',
                             user: current_user.as_json_for_event_api,
@@ -206,13 +206,13 @@ module API::V2
 
             unless current_user.update(password: params[:password])
               error_note = { reason: current_user.errors.full_messages.to_sentence }.to_json
-              activity_record(user: current_user.id, action: 'password reset',
+              activity_record(user_uid: current_user.uid, action: 'password reset',
                               result: 'failed', topic: 'password', data: error_note)
               code_error!(current_user.errors.details, 422)
             end
             Rails.cache.write(payload[:jti], 'utilized')
 
-            activity_record(user: current_user.id, action: 'password reset', result: 'succeed', topic: 'password')
+            activity_record(user_uid: current_user.uid, action: 'password reset', result: 'succeed', topic: 'password')
 
             EventAPI.notify('system.user.password.reset',
                             user: current_user.as_json_for_event_api,

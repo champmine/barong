@@ -104,7 +104,7 @@ describe 'Api::V1::Profiles' do
       expect_body.to eq(errors: ['resource.user.no_activity'])
     end
     it 'sorts user activities' do
-      4.times { create(:activity, user: test_user) }
+      4.times { create(:activity, user_uid: test_user.uid) }
       get '/api/v2/resource/users/activity/all', headers: auth_header
       activities = JSON.parse(response.body)
       expect(activities.first['id']).to be >= activities.last['id']

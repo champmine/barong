@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :activity do
-    user { FactoryBot.create(:user) }
+    user_uid { FactoryBot.create(:user).uid }
     user_ip { Faker::Internet.ip_v4_address }
     user_agent { Faker::Internet.user_agent }
     topic { %w[session password otp].sample }

@@ -11,6 +11,20 @@ module API
 
             User.where("#{field}": value).order('email ASC')
           end
+
+          def activity_record(options = {})
+            params = {
+              admin_uid:  current_user.uid,
+              user_uid:   options[:user_uid],
+              user_ip:    request.ip,
+              user_agent: request.env['HTTP_USER_AGENT'],
+              topic:      options[:topic],
+              action:     options[:action],
+              result:     options[:result],
+              data:       { info: options[:info] }.to_json
+            }
+            Activity.create(params)
+          end
         end
 
         resource :users do
@@ -86,17 +100,32 @@ module API
 
             error!({ errors: ['admin.user.doesnt_exist'] }, 404) if target_user.nil?
 
-            error!({ errors: ['admin.user.update_himself'] }, 422) if target_user.uid == current_user.uid
+            if target_user.uid == current_user.uid
+              activity_record(
+                user_uid: target_user.uid, action: 'update', result: 'failed', topic: 'users', info: 'updating self account is not allowed'
+              )
+              error!({ errors: ['admin.user.update_himself'] }, 422)
+            end
 
-            if update_param_key == 'role' && update_param_value == true
+            if update_param_key == 'otp' && update_param_value == true
+              activity_record(
+                user_uid: target_user.uid, action: 'update', result: 'failed', topic: 'users', info: 'enabling 2fa is not allowed'
+              )
               error!({ errors: ['admin.user.enable_2fa'] }, 422)
             end
 
             if update_param_value == target_user[update_param_key]
               error!({ errors: ["admin.user.#{update_param_key}_no_change"] }, 422)
+              activity_record(
+                user_uid: target_user.uid, action: 'update', result: 'failed', topic: 'users', info: "no changes on #{update_param_key}"
+              )
             end
 
             target_user.update(update_param_key => update_param_value)
+
+            activity_record(
+              user_uid: target_user.uid, action: 'update', result: 'succeed', topic: 'users', info: "change #{update_param_key} to #{update_param_value}"
+            )
             status 200
           end
 
@@ -179,8 +208,16 @@ module API
 
               label = Label.new(declared_params.except(:uid))
 
-              code_error!(label.errors.details, 422) unless label.save
+              unless label.save
+                activity_record(
+                  user_uid: target_user.uid, action: 'create', result: 'failed', topic: 'labels', info: "#{label.errors.full_messages}"
+                )
+                code_error!(label.errors.details, 422)
+              end
 
+              activity_record(
+                user_uid: target_user.uid, action: 'create', result: 'succeed', topic: 'labels', info: "create #{params[:key]} : #{params[:value]}"
+              )
               status 200
             end
 
@@ -218,9 +255,17 @@ module API
 
               label = Label.find_by_key_and_user_id_and_scope(declared_params[:key], target_user.id, declared_params[:scope])
 
-              error!({ errors: ['admin.label.doesnt_exist'] }, 404) if label.nil?
+              if label.nil?
+                activity_record(
+                  user_uid: target_user.uid, action: 'update', result: 'failed', topic: 'labels', info: "#{params[:key]} : #{params[:value]} label not found"
+                )
+                error!({ errors: ['admin.label.doesnt_exist'] }, 404)
+              end
 
               label.update(value: params[:value])
+              activity_record(
+                user_uid: target_user.uid, action: 'update', result: 'succeed', topic: 'labels', info: "update #{params[:key]} to #{params[:value]}"
+              )
               status 200
             end
 
@@ -251,9 +296,17 @@ module API
 
               label = Label.find_by_key_and_user_id_and_scope(declared_params[:key], target_user.id, declared_params[:scope])
 
-              error!({ errors: ['admin.label.doesnt_exist'] }, 404) if label.nil?
+              if label.nil?
+                activity_record(
+                  user_uid: target_user.uid, action: 'update', result: 'failed', topic: 'labels', info: "#{params[:key]} : #{params[:value]} label not found"
+                )
+                error!({ errors: ['admin.label.doesnt_exist'] }, 404)
+              end
 
               label.destroy
+              activity_record(
+                user_uid: target_user.uid, action: 'delete', result: 'succeed', topic: 'labels', info: "delete #{params[:key]} : #{params[:value]}"
+              )
               status 200
             end
           end

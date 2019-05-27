@@ -2,7 +2,7 @@ class Activity < ApplicationRecord
   TOPICS = %w[session password otp].freeze
   RESULTS = %w[succeed failed].freeze
 
-  belongs_to :user
+  belongs_to :user, foreign_key: :user_uid, primary_key: :uid
 
   validates :user_ip, presence: true, allow_blank: false
   validates :user_agent, presence: true, trusty_agent: true

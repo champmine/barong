@@ -24,7 +24,7 @@ module API::V2
               user: current_user.id, action: 'request QR code for 2FA', error_text: 'already_enabled')
           end
 
-          activity_record(user: current_user.id, action: 'request QR code for 2FA', result: 'succeed', topic: 'otp')
+          activity_record(user_uid: current_user.uid, action: 'request QR code for 2FA', result: 'succeed', topic: 'otp')
           TOTPService.create(current_user.uid, current_user.email)
         end
 
@@ -58,7 +58,7 @@ module API::V2
               user: current_user.id, action: 'enable 2FA')
           end
 
-          activity_record(user: current_user.id, action: 'enable 2FA', result: 'succeed', topic: 'otp')
+          activity_record(user_uid: current_user.uid, action: 'enable 2FA', result: 'succeed', topic: 'otp')
           200
         end
 
